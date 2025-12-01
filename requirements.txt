@@ -1,3 +1,7 @@
 streamlit
-requests
+diffusers
+transformers
+torch
+accelerate
 Pillow
+safetensors
