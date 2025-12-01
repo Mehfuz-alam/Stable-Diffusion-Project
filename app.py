@@ -20,9 +20,10 @@ with st.sidebar:
     st.write("💡 Tip: Keep prompt descriptive for better results!")
 
 # Hugging Face API
-HF_API_URL = "https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-xl-base-1.0"
+HF_API_URL = "https://router.huggingface.co/api/models/stabilityai/stable-diffusion-xl-base-1.0"
 HF_API_TOKEN = st.secrets.get("HF_API_TOKEN")  
 headers = {"Authorization": f"Bearer {HF_API_TOKEN}"}
+
 
 def generate_image(prompt, width=512, height=512):
     payload = {
