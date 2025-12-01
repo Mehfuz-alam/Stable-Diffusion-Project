@@ -5,39 +5,42 @@ from PIL import Image
 from io import BytesIO
 
 st.set_page_config(page_title="Stable Diffusion XL Generator", layout="wide")
-st.title("🌌 Stable Diffusion XL Image Generator (Free, CPU Compatible)")
+st.title("🌌 Stable Diffusion XL Image Generator (Free, Optimized CPU)")
 
 # Sidebar inputs
 with st.sidebar:
     st.header("Settings")
     prompt = st.text_area("Enter your prompt:", "An astronaut riding a green horse")
-    width = st.slider("Width", 256, 1024, 512, step=64)
-    height = st.slider("Height", 256, 1024, 512, step=64)
-    num_images = st.slider("Number of images", 1, 2, 1)  # Limit to 2 on CPU
+    width = st.slider("Width", 256, 512, 512, step=64)
+    height = st.slider("Height", 256, 512, 512, step=64)
+    num_images = st.slider("Number of images", 1, 2, 1)  # 1-2 images on CPU
     st.write("---")
-    st.write("💡 Tip: Be descriptive!")
+    st.write("💡 Tip: Be descriptive for better results!")
 
-# Load model (cache in session to avoid reloading)
-if "pipe" not in st.session_state:
-    with st.spinner("Loading Stable Diffusion XL..."):
-        pipe = StableDiffusionXLPipeline.from_pretrained(
-            "stabilityai/stable-diffusion-xl-base-1.0",
-            torch_dtype=torch.float32  # CPU compatible
-        )
-        pipe.to("cpu")
-        st.session_state["pipe"] = pipe
-else:
-    pipe = st.session_state["pipe"]
+# Load model with caching
+@st.cache_resource(show_spinner=True)
+def load_model():
+    st.info("Downloading Stable Diffusion XL model for the first time. This may take several minutes...")
+    pipe = StableDiffusionXLPipeline.from_pretrained(
+        "stabilityai/stable-diffusion-xl-base-1.0",
+        torch_dtype=torch.float16,  # lighter memory
+        use_safetensors=True
+    )
+    pipe.to("cpu")  # CPU-compatible
+    st.success("Model loaded! You can now generate images.")
+    return pipe
+
+pipe = load_model()
 
 # Generate images
 if st.button("Generate Image(s)"):
     if not prompt.strip():
         st.warning("Please enter a prompt!")
     else:
-        st.info("Generating image(s)... This may take a while on CPU!")
+        st.info("Generating image(s)... This may take a minute on CPU.")
         images = []
         for i in range(num_images):
-            image = pipe(prompt=prompt).images[0]
+            image = pipe(prompt=prompt, width=width, height=height, num_inference_steps=20).images[0]
             images.append(image)
         
         if images:
